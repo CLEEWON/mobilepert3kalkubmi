@@ -1,122 +1,137 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const KalkulatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class KalkulatorApp extends StatelessWidget {
+  const KalkulatorApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      title: "Kalkulator BMI",
+      debugShowCheckedModeBanner: false,
+      home: BmiPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class BmiPage extends StatefulWidget {
+  const BmiPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<BmiPage> createState() => _BmiPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _BmiPageState extends State<BmiPage> {
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
 
-  void _incrementCounter() {
+  double? _bmiResult;
+  String _bmiInterpretation = "Silahkan masukkan data Anda";
+
+  void _calculateBMI() {
+    final double weight = double.tryParse(_weightController.text) ?? 0;
+    final double heightInCM = double.tryParse(_heightController.text) ?? 0;
+
+    if (weight <= 0 || heightInCM <= 0) {
+      setState(() {
+        _bmiResult = null;
+        _bmiInterpretation = "Data tidak valid";
+      });
+      return;
+    }
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      final double heightInM = heightInCM / 100;
+      final double bmi = weight / (heightInM * heightInM);
+      _bmiResult = bmi;
+
+      if (bmi < 18.5) {
+        _bmiInterpretation = "Kekurangan Berat Badan";
+      } else if (bmi < 25) {
+        _bmiInterpretation = "Berat Badan Ideal";
+      } else if (bmi < 30) {
+        _bmiInterpretation = "Kelebihan Berat Badan";
+      } else {
+        _bmiInterpretation = "Obesitas";
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text("Kalkulator BMI"),
+        backgroundColor: Colors.amberAccent,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _weightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: "Berat Badan (Kg)",
+                icon: const Icon(Icons.monitor_weight),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _heightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: "Tinggi Badan (Cm)",
+                icon: const Icon(Icons.height_sharp),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _calculateBMI,
+              child: const Text("Hitung BMI"),
+            ),
+            const SizedBox(height: 40),
+            const Text(
+              "Hasil",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amberAccent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _bmiResult == null
+                        ? "-"
+                        : "BMI Anda: ${_bmiResult!.toStringAsFixed(1)}",
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _bmiInterpretation,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
