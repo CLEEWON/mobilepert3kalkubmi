@@ -30,15 +30,16 @@ class _BmiPageState extends State<BmiPage> {
 
   double? _bmiResult;
   String _bmiInterpretation = "Silahkan masukkan data Anda";
+  String? _selectedGender; // <-- tambahan: jenis kelamin
 
   void _calculateBMI() {
     final double weight = double.tryParse(_weightController.text) ?? 0;
     final double heightInCM = double.tryParse(_heightController.text) ?? 0;
 
-    if (weight <= 0 || heightInCM <= 0) {
+    if (weight <= 0 || heightInCM <= 0 || _selectedGender == null) {
       setState(() {
         _bmiResult = null;
-        _bmiInterpretation = "Data tidak valid";
+        _bmiInterpretation = "Mohon isi semua data dengan benar";
       });
       return;
     }
@@ -48,15 +49,38 @@ class _BmiPageState extends State<BmiPage> {
       final double bmi = weight / (heightInM * heightInM);
       _bmiResult = bmi;
 
-      if (bmi < 18.5) {
-        _bmiInterpretation = "Kekurangan Berat Badan";
-      } else if (bmi < 25) {
-        _bmiInterpretation = "Berat Badan Ideal";
-      } else if (bmi < 30) {
-        _bmiInterpretation = "Kelebihan Berat Badan";
-      } else {
-        _bmiInterpretation = "Obesitas";
+      // Rumus interpretasi berdasarkan gender
+      if (_selectedGender == "Laki-laki") {
+        if (bmi < 18.5) {
+          _bmiInterpretation = "Kekurangan Berat Badan";
+        } else if (bmi < 24.9) {
+          _bmiInterpretation = "Berat Badan Ideal";
+        } else if (bmi < 29.9) {
+          _bmiInterpretation = "Kelebihan Berat Badan";
+        } else {
+          _bmiInterpretation = "Obesitas";
+        }
+      } else if (_selectedGender == "Perempuan") {
+        if (bmi < 18.0) {
+          _bmiInterpretation = "Kekurangan Berat Badan";
+        } else if (bmi < 24.0) {
+          _bmiInterpretation = "Berat Badan Ideal";
+        } else if (bmi < 29.0) {
+          _bmiInterpretation = "Kelebihan Berat Badan";
+        } else {
+          _bmiInterpretation = "Obesitas";
+        }
       }
+    });
+  }
+
+  void _resetFields() {
+    setState(() {
+      _weightController.clear();
+      _heightController.clear();
+      _selectedGender = null;
+      _bmiResult = null;
+      _bmiInterpretation = "Silahkan masukkan data Anda";
     });
   }
 
@@ -72,6 +96,40 @@ class _BmiPageState extends State<BmiPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Pilih jenis kelamin
+            const Text(
+              "Pilih Jenis Kelamin",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Radio<String>(
+                  value: "Laki-laki",
+                  groupValue: _selectedGender,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                ),
+                const Text("Laki-laki"),
+                const SizedBox(width: 20),
+                Radio<String>(
+                  value: "Perempuan",
+                  groupValue: _selectedGender,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
+                ),
+                const Text("Perempuan"),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Input berat
             TextField(
               controller: _weightController,
               keyboardType: TextInputType.number,
@@ -84,6 +142,8 @@ class _BmiPageState extends State<BmiPage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Input tinggi
             TextField(
               controller: _heightController,
               keyboardType: TextInputType.number,
@@ -96,10 +156,25 @@ class _BmiPageState extends State<BmiPage> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _calculateBMI,
-              child: const Text("Hitung BMI"),
+
+            // Tombol hitung & reset
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _calculateBMI,
+                  child: const Text("Hitung BMI"),
+                ),
+                ElevatedButton(
+                  onPressed: _resetFields,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: const Text("Reset"),
+                ),
+              ],
             ),
+
             const SizedBox(height: 40),
             const Text(
               "Hasil",
@@ -107,6 +182,8 @@ class _BmiPageState extends State<BmiPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 16),
+
+            // Kotak hasil
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
